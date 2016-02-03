@@ -1,4 +1,4 @@
-function skelPlayData(skelStruct, channels, frameLength)
+function skelPlayData(skelStruct, channels, frameLength, videoname)
 
 % SKELPLAYDATA Play skel motion capture data.
 % FORMAT 
@@ -15,6 +15,7 @@ function skelPlayData(skelStruct, channels, frameLength)
 
 if nargin < 3
   frameLength = 1/120;
+  videoname='animation.avi';
 end
 clf
 
@@ -49,7 +50,11 @@ set(gca, 'xlim', xlim, ...
 
 
 % Play the motion
+vidObj = VideoWriter(videoname);
+open(vidObj);
 for j = 1:size(channels, 1)
   pause(frameLength)
   skelModify(handle, channels(j, :), skelStruct);
+  writeVideo(vidObj,getframe(gcf));
 end
+close(vidObj);
