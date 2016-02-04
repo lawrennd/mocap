@@ -1,20 +1,27 @@
-function skelPlayData(skelStruct, channels, frameLength, videoname)
+function skelWriteAvi(skelStruct, channels, frameLength, videoname)
 
-% SKELPLAYDATA Play skel motion capture data.
+% SKELWRITEAVI Writes data to an AVI file.
 % FORMAT 
-% DESC plays channels from a motion capture skeleton and channels.
+% DESC writes channels from a motion capture skeleton and channels
+% to an avi file.
 % ARG skel : the skeleton for the motion.
 % ARG channels : the channels for the motion.
 % ARG frameLength : the framelength for the motion.
+% ARG filename: the filenme to use
 %
 % COPYRIGHT : Neil D. Lawrence, 2006
 %
-% SEEALSO : bvhPlayData, acclaimPlayData
+% COPYRIGHT : Redouane Lguensat, 2016
+%
+% SEEALSO : skelPlayData
 
 % MOCAP
 
-if nargin < 3
-  frameLength = 1/120;
+if nargin < 4
+  videoname='animation.avi';
+  if nargin < 3
+    frameLength = 1/120;
+  end 
 end
 clf
 
@@ -49,7 +56,11 @@ set(gca, 'xlim', xlim, ...
 
 
 % Play the motion
+vidObj = VideoWriter(videoname);
+open(vidObj);
 for j = 1:size(channels, 1)
   pause(frameLength)
   skelModify(handle, channels(j, :), skelStruct);
+  writeVideo(vidObj,getframe(gcf));
 end
+close(vidObj);
