@@ -284,7 +284,7 @@ while ordered == false
     ordered = true;
     if(skel.tree(i).parent>i)
       ordered = false;
-      skel.tree = swapNode(skel.tree, i, skel.tree(i).parent);
+      skel.tree = treeSwapNode(skel.tree, i, skel.tree(i).parent);
     end
   end
 end
