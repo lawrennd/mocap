@@ -16,21 +16,21 @@ function [channels, skel] = acclaimLoadChannels(fileName, skel)
 
 fid=fopen(fileName, 'rt');
 
-lin = getline(fid);
+lin = fgets(fid);
 lin = strtrim(lin);
 while ~strcmp(lin,':DEGREES')
-  lin = getline(fid);
+  lin = fgets(fid);
   lin = strtrim(lin);
 end
 
 counter = 0;
-lin = getline(fid);
+lin = fgets(fid);
 
 while lin~=-1
   lin = strtrim(lin);
-  parts = tokenise(lin, ' ');
+  parts = strsplit(lin);
   if length(parts)==1
-    frameNo = str2num(parts{1});
+    frameNo = str2double(parts{1});
     if ~isempty(frameNo)
       counter = counter + 1;
       if counter ~= frameNo
@@ -42,10 +42,10 @@ while lin~=-1
   else
     ind = skelReverseLookup(skel, parts{1});
     for i = 1:length(skel.tree(ind).channels)
-      bone{ind}{frameNo}(i) = str2num(parts{i+1});
+      bone{ind}{frameNo}(i) = str2double(parts{i+1});
     end
   end
-  lin = getline(fid);
+  lin = fgets(fid);
 end
 fclose(fid);
 numFrames = counter;
@@ -57,7 +57,7 @@ channels = zeros(numFrames, numChannels);
 
 endVal = 0;
 for i =1:length(skel.tree)
-  if length(skel.tree(i).channels)>0
+  if not(isempty(skel.tree(i).channels))
     startVal = endVal + 1;
     endVal = endVal + length(skel.tree(i).channels);
     channels(:, startVal:endVal)= reshape([bone{i}{:}], ...
@@ -93,6 +93,5 @@ for i = 1:length(channels)
     posInd(1, 3) = baseChannel + i;
   end        
 end
-
 
 
