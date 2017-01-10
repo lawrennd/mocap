@@ -19,7 +19,7 @@ intPat = '([0-9]+)';
 
 boneCount = 0;
 fid = fopen(fileName, 'r');
-lin = getline(fid);
+lin = fgets(fid);
 lin = strtrim(lin);
 skel.length = 1.0;
 skel.mass = 1.0;
@@ -27,18 +27,18 @@ skel.angle = 'deg';
 skel.type = 'acclaim';
 skel.documentation = '';
 skel.name = fileName;
-while ~feof(fid)
+while ischar(lin(1))
   if lin(1)==':'
     switch lin(2:end)
      case 'name'
-      lin = getline(fid);
+      lin = fgets(fid);
       lin = strtrim(lin);
       skel.name = lin;
      case 'units'
-      lin = getline(fid);
+      lin = fgets(fid);
       lin = strtrim(lin);
       while(lin(1) ~= ':')
-        parts = tokenise(lin, ' ');
+        parts = strsplit(lin);
         switch parts{1}
          case 'mass'
           skel.mass = str2num(parts{2});
@@ -47,15 +47,15 @@ while ~feof(fid)
          case 'angle'
           skel.angle = strtrim(parts{2});
         end
-        lin = getline(fid);
+        lin = fgets(fid);
         lin = strtrim(lin);
       end
      case 'documentation'
       skel.documentation = [];
-      lin = getline(fid);
+      lin = fgets(fid);
       while(lin(1) ~=':')
         skel.documentation = [skel.documentation char(13) lin];
-        lin = getline(fid);
+        lin = fgets(fid);
       end
       lin = strtrim(lin);
       
@@ -77,10 +77,10 @@ while ~feof(fid)
                             'posInd', [], ...
                             'children', [], ...
                             'limits', []);
-      lin = getline(fid);
+      lin = fgets(fid);
       lin = strtrim(lin);
       while(lin(1) ~= ':')
-        parts = tokenise(lin, ' ');
+        parts = strsplit(lin);
         switch parts{1}
          case 'order'
           order = [];
@@ -121,14 +121,14 @@ while ~feof(fid)
                               str2num(parts{3}) ...
                               str2num(parts{4})];
         end
-        lin = getline(fid);
+        lin = fgets(fid);
         lin = strtrim(lin);
       end
      case 'bonedata'
-      lin = getline(fid);
+      lin = fgets(fid);
       lin = strtrim(lin);
       while(lin(1)~=':')
-        parts = tokenise(lin, ' ');
+        parts = strsplit(lin, ' ');
         switch parts{1}
          case 'begin'
           boneCount = boneCount + 1;
@@ -149,28 +149,28 @@ while ~feof(fid)
                                             'posInd', [], ...
                                             'children', [], ...
                                             'limits', []);
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
          
          case 'id'
           skel.tree(boneCount+1).id = str2num(parts{2});
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
           skel.tree(boneCount+1).children = [];
          
          case 'name'
           skel.tree(boneCount+1).name = parts{2};
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
          
          case 'direction'
           direction = [str2num(parts{2}) str2num(parts{3}) str2num(parts{4})];
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
          
          case 'length'
           lgth =  str2num(parts{2});
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
          
          case 'axis'
@@ -179,7 +179,7 @@ while ~feof(fid)
                               str2num(parts{4})];
           % order is reversed compared to bvh
           skel.tree(boneCount+1).axisOrder =  lower(parts{end}(end:-1:1));
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
          
          case 'dof'
@@ -208,7 +208,7 @@ while ~feof(fid)
           end
           % order is reversed compared to bvh
           skel.tree(boneCount+1).order = order(end:-1:1);
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
          
          case 'limits'
@@ -216,31 +216,31 @@ while ~feof(fid)
           skel.tree(boneCount+1).limits(limitsCount, 1:2) = ...
               [str2num(parts{2}(2:end)) str2num(parts{3}(1:end-1))];
           
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
           while(~strcmp(lin, 'end'))
-            parts = tokenise(lin, ' ');
+            parts = strsplit(lin, ' ');
 
             limitsCount = limitsCount + 1;
             skel.tree(boneCount+1).limits(limitsCount, 1:2) = ...
                 [str2num(parts{1}(2:end)) str2num(parts{2}(1:end-1))];
-            lin = getline(fid);
+            lin = fgets(fid);
             lin = strtrim(lin);
           end
          
          case 'end'
           skel.tree(boneCount+1).offset = direction*lgth;
-          lin = getline(fid);
+          lin = fgets(fid);
           lin = strtrim(lin);
         end
         
       end
     
      case 'hierarchy'
-      lin = getline(fid);
+      lin = fgets(fid);
       lin = strtrim(lin);
       while(~strcmp(lin, 'end'))
-        parts = tokenise(lin, ' ');
+        parts = strsplit(lin, ' ');
         if ~strcmp(lin, 'begin')
           ind = skelReverseLookup(skel, parts{1});
           for i = 2:length(parts)
@@ -248,7 +248,7 @@ while ~feof(fid)
                                 skelReverseLookup(skel, parts{i})];
           end        
         end
-        lin = getline(fid);
+        lin = fgets(fid);
         lin = strtrim(lin);
       end
       if feof(fid)
@@ -261,40 +261,20 @@ while ~feof(fid)
         skel = finaliseStructure(skel);
         return
       end
-      lin = getline(fid);
+      lin = fgets(fid);
       lin = strtrim(lin);
     end
   else
-    if isempty(lin)
+    if isempty(lin) || lin(1) == '#'
+      lin = fgets(fid);
+      lin = strtrim(lin);
+      continue
+    elseif lin(1) == '#'
+      lin = fgets(fid);
+      lin = strtrim(lin);
       continue
     else
       error('Unrecognised file format');
     end
   end
 end
-
-function skel = finaliseStructure(skel)
-
-% FINALISESTRUCTURE 
-
-skel.tree = treeFindParents(skel.tree);
-ordered = false;
-while ordered == false
-  for i = 1:length(skel.tree)
-    ordered = true;
-    if(skel.tree(i).parent>i)
-      ordered = false;
-      skel.tree = swapNode(skel.tree, i, skel.tree(i).parent);
-    end
-  end
-end
-
-for i = 1:length(skel.tree)
-  skel.tree(i).C = rotationMatrix(deg2rad(skel.tree(i).axis(1)), ...
-                             deg2rad(skel.tree(i).axis(2)), ...
-                             deg2rad(skel.tree(i).axis(3)), ...
-                             skel.tree(i).axisOrder);
-  skel.tree(i).Cinv = inv(skel.tree(i).C);
-end
-
-
